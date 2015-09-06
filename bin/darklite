@@ -1,0 +1,32 @@
+#!/usr/bin/env ruby
+
+require 'darklite'
+
+$log = Logger.new(STDOUT)
+$log.level = Logger::DEBUG
+
+Dotenv.load
+
+latitude = ENV['DARKLITE_LATITUDE'].to_f
+longitude = ENV['DARKLITE_LONGITUDE'].to_f
+
+Huey.configure do |config|
+  config.uuid = ENV['HUE_UUID'].to_s
+  config.ssdp_ttl = ENV['HUE_TTL'].to_i
+end
+
+loop do
+  $log.debug 'Starting at the top of the loop'
+
+  now = Time.now.localtime
+  sunrise = SunTimes.new.rise(now, latitude, longitude).localtime
+  sunset = SunTimes.new.set(now, latitude, longitude).localtime
+
+  ct = Darklite::Utils.estimate_color_temperature(now, sunrise, sunset)
+  bri = 255
+
+  Darklite::Utils.change_lights(bri, ct)
+
+  $log.debug 'Sleeping'
+  sleep 60
+end

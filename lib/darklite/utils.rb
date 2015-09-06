@@ -8,10 +8,16 @@ module Darklite
     DAYTIME_CT = 153
 
     def self.change_lights(brightness, temperature)
-      Huey::Bulb.all.update(bri: brightness, ct: temperature, on: true)
+      $log.info "Updating lights to b: #{brightness}, t: #{temperature}"
+      Huey::Bulb.all.each do |bulb|
+        bulb.update(bri: brightness, ct: temperature, on: true)
+        # FIXME: Rate limit hack
+        sleep 0.1
+      end
     end
 
     def self.turn_off_lights
+      $log.info 'Turning off all lights'
       Huey::Bulb.all.update(on: false)
     end
 
